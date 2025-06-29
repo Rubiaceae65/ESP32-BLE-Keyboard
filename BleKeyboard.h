@@ -100,24 +100,24 @@ const uint8_t KEY_NUM_PLUS = 0xDF;
 const uint8_t KEY_NUM_ENTER = 0xE0;
 const uint8_t KEY_NUM_PERIOD = 0xEB;
 
-typedef uint8_t MediaKeyReport[2];
+typedef uint8_t MediaBleKeyReport[2];
 
-const MediaKeyReport KEY_MEDIA_NEXT_TRACK = {1, 0};
-const MediaKeyReport KEY_MEDIA_PREVIOUS_TRACK = {2, 0};
-const MediaKeyReport KEY_MEDIA_STOP = {4, 0};
-const MediaKeyReport KEY_MEDIA_PLAY_PAUSE = {8, 0};
-const MediaKeyReport KEY_MEDIA_MUTE = {16, 0};
-const MediaKeyReport KEY_MEDIA_VOLUME_UP = {32, 0};
-const MediaKeyReport KEY_MEDIA_VOLUME_DOWN = {64, 0};
-const MediaKeyReport KEY_MEDIA_WWW_HOME = {128, 0};
-const MediaKeyReport KEY_MEDIA_LOCAL_MACHINE_BROWSER = {0, 1}; // Opens "My Computer" on Windows
-const MediaKeyReport KEY_MEDIA_CALCULATOR = {0, 2};
-const MediaKeyReport KEY_MEDIA_WWW_BOOKMARKS = {0, 4};
-const MediaKeyReport KEY_MEDIA_WWW_SEARCH = {0, 8};
-const MediaKeyReport KEY_MEDIA_WWW_STOP = {0, 16};
-const MediaKeyReport KEY_MEDIA_WWW_BACK = {0, 32};
-const MediaKeyReport KEY_MEDIA_CONSUMER_CONTROL_CONFIGURATION = {0, 64}; // Media Selection
-const MediaKeyReport KEY_MEDIA_EMAIL_READER = {0, 128};
+const MediaBleKeyReport KEY_MEDIA_NEXT_TRACK = {1, 0};
+const MediaBleKeyReport KEY_MEDIA_PREVIOUS_TRACK = {2, 0};
+const MediaBleKeyReport KEY_MEDIA_STOP = {4, 0};
+const MediaBleKeyReport KEY_MEDIA_PLAY_PAUSE = {8, 0};
+const MediaBleKeyReport KEY_MEDIA_MUTE = {16, 0};
+const MediaBleKeyReport KEY_MEDIA_VOLUME_UP = {32, 0};
+const MediaBleKeyReport KEY_MEDIA_VOLUME_DOWN = {64, 0};
+const MediaBleKeyReport KEY_MEDIA_WWW_HOME = {128, 0};
+const MediaBleKeyReport KEY_MEDIA_LOCAL_MACHINE_BROWSER = {0, 1}; // Opens "My Computer" on Windows
+const MediaBleKeyReport KEY_MEDIA_CALCULATOR = {0, 2};
+const MediaBleKeyReport KEY_MEDIA_WWW_BOOKMARKS = {0, 4};
+const MediaBleKeyReport KEY_MEDIA_WWW_SEARCH = {0, 8};
+const MediaBleKeyReport KEY_MEDIA_WWW_STOP = {0, 16};
+const MediaBleKeyReport KEY_MEDIA_WWW_BACK = {0, 32};
+const MediaBleKeyReport KEY_MEDIA_CONSUMER_CONTROL_CONFIGURATION = {0, 64}; // Media Selection
+const MediaBleKeyReport KEY_MEDIA_EMAIL_READER = {0, 128};
 
 
 //  Low level key report: up to 6 keys and shift, ctrl etc at once
@@ -126,7 +126,7 @@ typedef struct
   uint8_t modifiers;
   uint8_t reserved;
   uint8_t keys[6];
-} KeyReport;
+} BleKeyReport;
 
 class BleKeyboard : public Print, public BLEServerCallbacks, public BLECharacteristicCallbacks
 {
@@ -136,8 +136,8 @@ private:
   BLECharacteristic* outputKeyboard;
   BLECharacteristic* inputMediaKeys;
   BLEAdvertising*    advertising;
-  KeyReport          _keyReport;
-  MediaKeyReport     _mediaKeyReport;
+  BleKeyReport          _keyReport;
+  MediaBleKeyReport     _mediaBleKeyReport;
   std::string        deviceName;
   std::string        deviceManufacturer;
   uint8_t            batteryLevel;
@@ -153,14 +153,14 @@ public:
   BleKeyboard(std::string deviceName = "ESP32 Keyboard", std::string deviceManufacturer = "Espressif", uint8_t batteryLevel = 100);
   void begin(void);
   void end(void);
-  void sendReport(KeyReport* keys);
-  void sendReport(MediaKeyReport* keys);
+  void sendReport(BleKeyReport* keys);
+  void sendReport(MediaBleKeyReport* keys);
   size_t press(uint8_t k);
-  size_t press(const MediaKeyReport k);
+  size_t press(const MediaBleKeyReport k);
   size_t release(uint8_t k);
-  size_t release(const MediaKeyReport k);
+  size_t release(const MediaBleKeyReport k);
   size_t write(uint8_t c);
-  size_t write(const MediaKeyReport c);
+  size_t write(const MediaBleKeyReport c);
   size_t write(const uint8_t *buffer, size_t size);
   void releaseAll(void);
   bool isConnected(void);

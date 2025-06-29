@@ -186,11 +186,11 @@ void BleKeyboard::set_version(uint16_t version) {
 	this->version = version; 
 }
 
-void BleKeyboard::sendReport(KeyReport* keys)
+void BleKeyboard::sendReport(BleKeyReport* keys)
 {
   if (this->isConnected())
   {
-    this->inputKeyboard->setValue((uint8_t*)keys, sizeof(KeyReport));
+    this->inputKeyboard->setValue((uint8_t*)keys, sizeof(BleKeyReport));
     this->inputKeyboard->notify();
 #if defined(USE_NIMBLE)        
     // vTaskDelay(delayTicks);
@@ -199,11 +199,11 @@ void BleKeyboard::sendReport(KeyReport* keys)
   }	
 }
 
-void BleKeyboard::sendReport(MediaKeyReport* keys)
+void BleKeyboard::sendReport(MediaBleKeyReport* keys)
 {
   if (this->isConnected())
   {
-    this->inputMediaKeys->setValue((uint8_t*)keys, sizeof(MediaKeyReport));
+    this->inputMediaKeys->setValue((uint8_t*)keys, sizeof(MediaBleKeyReport));
     this->inputMediaKeys->notify();
 #if defined(USE_NIMBLE)        
     //vTaskDelay(delayTicks);
@@ -346,9 +346,8 @@ const uint8_t _asciimap[128] =
 	0x31|SHIFT,    // |
 	0x30|SHIFT,    // }
 	0x35|SHIFT,    // ~
-	0				// DEL
+	0			// DEL
 };
-
 
 uint8_t USBPutChar(uint8_t c);
 
@@ -397,16 +396,16 @@ size_t BleKeyboard::press(uint8_t k)
 	return 1;
 }
 
-size_t BleKeyboard::press(const MediaKeyReport k)
+size_t BleKeyboard::press(const MediaBleKeyReport k)
 {
     uint16_t k_16 = k[1] | (k[0] << 8);
-    uint16_t mediaKeyReport_16 = _mediaKeyReport[1] | (_mediaKeyReport[0] << 8);
+    uint16_t mediaKeyReport_16 = _mediaBleKeyReport[1] | (_mediaBleKeyReport[0] << 8);
 
     mediaKeyReport_16 |= k_16;
-    _mediaKeyReport[0] = (uint8_t)((mediaKeyReport_16 & 0xFF00) >> 8);
-    _mediaKeyReport[1] = (uint8_t)(mediaKeyReport_16 & 0x00FF);
+    _mediaBleKeyReport[0] = (uint8_t)((mediaKeyReport_16 & 0xFF00) >> 8);
+    _mediaBleKeyReport[1] = (uint8_t)(mediaKeyReport_16 & 0x00FF);
 
-	sendReport(&_mediaKeyReport);
+	sendReport(&_mediaBleKeyReport);
 	return 1;
 }
 
@@ -444,15 +443,15 @@ size_t BleKeyboard::release(uint8_t k)
 	return 1;
 }
 
-size_t BleKeyboard::release(const MediaKeyReport k)
+size_t BleKeyboard::release(const MediaBleKeyReport k)
 {
     uint16_t k_16 = k[1] | (k[0] << 8);
-    uint16_t mediaKeyReport_16 = _mediaKeyReport[1] | (_mediaKeyReport[0] << 8);
+    uint16_t mediaKeyReport_16 = _mediaBleKeyReport[1] | (_mediaBleKeyReport[0] << 8);
     mediaKeyReport_16 &= ~k_16;
-    _mediaKeyReport[0] = (uint8_t)((mediaKeyReport_16 & 0xFF00) >> 8);
-    _mediaKeyReport[1] = (uint8_t)(mediaKeyReport_16 & 0x00FF);
+    _mediaBleKeyReport[0] = (uint8_t)((mediaKeyReport_16 & 0xFF00) >> 8);
+    _mediaBleKeyReport[1] = (uint8_t)(mediaKeyReport_16 & 0x00FF);
 
-	sendReport(&_mediaKeyReport);
+	sendReport(&_mediaBleKeyReport);
 	return 1;
 }
 
@@ -465,10 +464,10 @@ void BleKeyboard::releaseAll(void)
 	_keyReport.keys[4] = 0;
 	_keyReport.keys[5] = 0;
 	_keyReport.modifiers = 0;
-    _mediaKeyReport[0] = 0;
-    _mediaKeyReport[1] = 0;
+    _mediaBleKeyReport[0] = 0;
+    _mediaBleKeyReport[1] = 0;
 	sendReport(&_keyReport);
-	sendReport(&_mediaKeyReport);
+	sendReport(&_mediaBleKeyReport);
 }
 
 size_t BleKeyboard::write(uint8_t c)
@@ -478,7 +477,7 @@ size_t BleKeyboard::write(uint8_t c)
 	return p;              // just return the result of press() since release() almost always returns 1
 }
 
-size_t BleKeyboard::write(const MediaKeyReport c)
+size_t BleKeyboard::write(const MediaBleKeyReport c)
 {
 	uint16_t p = press(c);  // Keydown
 	release(c);            // Keyup
@@ -488,12 +487,10 @@ size_t BleKeyboard::write(const MediaKeyReport c)
 size_t BleKeyboard::write(const uint8_t *buffer, size_t size) {
 	size_t n = 0;
 	while (size--) {
-		if (*buffer != '\r') {
-			if (write(*buffer)) {
-			  n++;
-			} else {
-			  break;
-			}
+		if (write(*buffer)) {
+		  n++;
+		} else {
+		  break;
 		}
 		buffer++;
 	}
